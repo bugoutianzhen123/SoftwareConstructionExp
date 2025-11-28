@@ -16,8 +16,9 @@ onMounted(loadApplications)
 
 <template>
   <section class="card">
-    <h3>申请智能筛选</h3>
+    <h3>学生申请</h3>
     <div class="toolbar">
+      <span style="margin-right:8px">筛选</span>
       <FilterBar :options="[{value:'submitted',label:'submitted'},{value:'approved',label:'approved'},{value:'rejected',label:'rejected'}]" @update:option="v=>{appStatus=v; loadApplications()}" />
       <button class="btn secondary" @click="loadApplications">刷新</button>
     </div>

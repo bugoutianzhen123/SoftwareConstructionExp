@@ -19,7 +19,7 @@ function to(p){ router.push(p) }
       <div class="title">教师</div>
       <a :class="{active: route.path==='/teacher/projects'}" href="#" @click.prevent="to('/teacher/projects')">项目管理</a>
       <a :class="{active: route.path==='/teacher/tracking'}" href="#" @click.prevent="to('/teacher/tracking')">过程跟踪</a>
-      <a :class="{active: route.path==='/teacher/applications'}" href="#" @click.prevent="to('/teacher/applications')">申请筛选</a>
+      <a :class="{active: route.path==='/teacher/applications'}" href="#" @click.prevent="to('/teacher/applications')">学生申请</a>
     </div>
     <div class="section" v-if="role==='admin'">
       <div class="title">管理员</div>

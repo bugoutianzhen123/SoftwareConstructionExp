@@ -92,3 +92,6 @@ input, select, textarea { width: 100%; padding: 8px 10px; border: 1px solid #ddd
     background-color: #f9f9f9;
   }
 }
+.chips { display:flex; gap:8px; flex-wrap:wrap }
+.chip { padding:6px 10px; border:1px solid #eee; border-radius:999px; background:#fff }
+@media (prefers-color-scheme: dark) { .chip { background:#1a1a1a; border-color:#333 } }
