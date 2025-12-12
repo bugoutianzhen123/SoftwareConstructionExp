@@ -22,3 +22,13 @@ func (s *Service) ListProjects(teacherID string) []*domain.Project {
     for _, p := range ps { if p.TeacherID == tid { out = append(out, p) } }
     return out
 }
+
+func (s *Service) UpdateProject(p *domain.Project) (*domain.Project, error) {
+    if p.ID == 0 || p.Title == "" || p.Description == "" || len(p.Requirements) == 0 { return nil, errors.New("缺少必填字段") }
+    p.Requirements = normalize(p.Requirements)
+    p.Tags = normalize(p.Tags)
+    return s.repo.UpdateProject(p)
+}
+
+func (s *Service) DeleteProject(id int64) error { return s.repo.DeleteProject(id) }
+func (s *Service) SetProjectArchived(id int64, archived bool) error { return s.repo.SetProjectArchived(id, archived) }

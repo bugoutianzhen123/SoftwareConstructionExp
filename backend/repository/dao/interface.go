@@ -12,6 +12,9 @@ type DAO interface {
     AddProject(p *domain.Project) (*domain.Project, error)
     ListProjects() []*domain.Project
     GetProject(id int64) *domain.Project
+    UpdateProject(p *domain.Project) (*domain.Project, error)
+    DeleteProject(id int64) error
+    SetProjectArchived(id int64, archived bool) error
     AddApplication(a *domain.Application) (*domain.Application, error)
     ListApplications() []*domain.Application
     GetApplication(id int64) *domain.Application
@@ -22,4 +25,5 @@ type DAO interface {
     ListFeedbacks() []*domain.Feedback
     AddDocument(d *domain.Document) (*domain.Document, error)
     ListDocumentsByApplication(appID int64) []*domain.Document
+    GetDocument(id int64) *domain.Document
 }

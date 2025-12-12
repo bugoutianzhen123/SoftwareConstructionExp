@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Sidebar from "./components/Sidebar.vue";
+import Toast from "./components/Toast.vue";
 import { api } from "./api";
 const router = useRouter();
 const route = useRoute();
@@ -62,6 +63,7 @@ onMounted(() => {
     <main class="container">
       <router-view />
     </main>
+    <Toast />
   </div>
   <main v-else class="auth-container">
     <router-view />

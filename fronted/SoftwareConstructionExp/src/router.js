@@ -9,6 +9,7 @@ import StudentProfile from "./views/StudentProfile.vue";
 import TeacherProjects from "./views/TeacherProjects.vue";
 import TeacherProjectCreate from "./views/TeacherProjectCreate.vue";
 import TeacherProjectDetail from "./views/TeacherProjectDetail.vue";
+import TeacherProjectEdit from "./views/TeacherProjectEdit.vue";
 import TeacherTracking from "./views/TeacherTracking.vue";
 import TeacherApplications from "./views/TeacherApplications.vue";
 import TeacherStats from "./views/TeacherStats.vue";
@@ -30,6 +31,7 @@ const routes = [
   { path: "/teacher/projects", component: TeacherProjects },
   { path: "/teacher/projects/create", component: TeacherProjectCreate },
   { path: "/teacher/projects/:id", component: TeacherProjectDetail },
+  { path: "/teacher/projects/:id/edit", component: TeacherProjectEdit },
   { path: "/teacher/tracking", component: TeacherTracking },
   { path: "/teacher/applications", component: TeacherApplications },
   { path: "/teacher/stats", component: TeacherStats },

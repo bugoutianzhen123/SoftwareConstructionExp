@@ -50,6 +50,9 @@ func NewRouter(h *handle.Handlers, ah *handle.AuthHandlers, repo repository.Repo
     projects := api.Group("/projects")
     projects.GET("", h.ListProjects)
     projects.POST("", auth.RequireRole(domain.RoleTeacher, domain.RoleAdmin), h.CreateProject)
+    projects.PATCH("", auth.RequireRole(domain.RoleTeacher, domain.RoleAdmin), h.UpdateProject)
+    projects.DELETE("", auth.RequireRole(domain.RoleTeacher, domain.RoleAdmin), h.DeleteProject)
+    projects.POST("/archive", auth.RequireRole(domain.RoleTeacher, domain.RoleAdmin), h.ArchiveProject)
 
     matches := api.Group("/matches")
     matches.GET("", auth.RequireRole(domain.RoleStudent, domain.RoleAdmin), h.Matches)
@@ -76,6 +79,7 @@ func NewRouter(h *handle.Handlers, ah *handle.AuthHandlers, repo repository.Repo
 
     documents := api.Group("/documents")
     documents.GET("", auth.RequireRole(domain.RoleStudent, domain.RoleTeacher, domain.RoleAdmin), handle.NewUploadHandlers(h.Service()).List)
+    documents.GET("/download", auth.RequireRole(domain.RoleStudent, domain.RoleTeacher, domain.RoleAdmin), handle.NewUploadHandlers(h.Service()).Download)
 
     admin := api.Group("/admin").Use(auth.RequireRole(domain.RoleAdmin))
     admin.GET("/stats", handle.NewAdminHandlers(h.Service()).Stats)

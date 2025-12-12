@@ -14,8 +14,11 @@ async function onApply() {
   try {
     const pid = Number(selectedProject.value)
     if (!pid) return
+    if (!confirm('确认申请该项目？')) return
     await api.apply({ student_id: userId, project_id: pid })
     applyMsg.value = '已提交申请'
+    window.dispatchEvent(new CustomEvent('toast', { detail: { msg: '申请已提交', type: 'success' } }))
+    await loadData()
   } catch(e) { error.value = e.message }
 }
 onMounted(loadData)

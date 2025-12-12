@@ -24,12 +24,13 @@ type Project struct {
     Description  string   `json:"description"`
     Requirements []string `json:"requirements" gorm:"serializer:json"`
     Tags         []string `json:"tags" gorm:"serializer:json"`
+    Archived     bool     `json:"archived" gorm:"index"`
 }
 
 type Application struct {
     ID        int64  `json:"id" gorm:"primaryKey"`
-    StudentID int64  `json:"student_id" gorm:"index"`
-    ProjectID int64  `json:"project_id" gorm:"index"`
+    StudentID int64  `json:"student_id" gorm:"index;uniqueIndex:uniq_student_project"`
+    ProjectID int64  `json:"project_id" gorm:"index;uniqueIndex:uniq_student_project"`
     Status    string `json:"status" gorm:"size:32;index"`
 }
 

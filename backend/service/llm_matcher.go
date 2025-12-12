@@ -40,7 +40,8 @@ func (l *LLMMatcher) Match(student *domain.User, projects []*domain.Project) []d
     var out []domain.MatchResult
     for _, p := range projects {
         prompt := buildPrompt(student, p)
-        ctx := context.Background()
+        ctx, cancel := context.WithTimeout(context.Background(), 8_000_000_000) // 8s
+        defer cancel()
         resp, err := l.llm.Call(ctx, prompt, llms.WithTemperature(0))
         if err != nil || resp == "" {
             out = append(out, domain.MatchResult{Project: p, Score: 0, Reason: "LLM错误或无响应"})

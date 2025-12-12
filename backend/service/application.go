@@ -10,6 +10,8 @@ import (
 
 func (s *Service) Apply(a *domain.Application) (*domain.Application, error) {
     if a.StudentID == 0 || a.ProjectID == 0 { return nil, errors.New("缺少必填字段") }
+    apps := s.repo.ListApplications()
+    for _, ex := range apps { if ex.StudentID == a.StudentID && ex.ProjectID == a.ProjectID { return nil, errors.New("已提交过该项目申请") } }
     a.Status = "submitted"
     return s.repo.AddApplication(a)
 }

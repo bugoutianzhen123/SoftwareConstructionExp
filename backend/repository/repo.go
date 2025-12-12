@@ -14,10 +14,12 @@ type Repo interface {
     GetUserByEmail(email string) *domain.User
     UpdateUserRole(id int64, role domain.Role) error
     UpdateUser(u *domain.User) (*domain.User, error)
-
     AddProject(p *domain.Project) (*domain.Project, error)
     ListProjects() []*domain.Project
     GetProject(id int64) *domain.Project
+    UpdateProject(p *domain.Project) (*domain.Project, error)
+    DeleteProject(id int64) error
+    SetProjectArchived(id int64, archived bool) error
 
     AddApplication(a *domain.Application) (*domain.Application, error)
 	ListApplications() []*domain.Application
@@ -29,6 +31,7 @@ type Repo interface {
     ListFeedbacks() []*domain.Feedback
     AddDocument(d *domain.Document) (*domain.Document, error)
     ListDocumentsByApplication(appID int64) []*domain.Document
+    GetDocument(id int64) *domain.Document
 }
 
 type RepoImpl struct {
@@ -94,6 +97,29 @@ func (r *RepoImpl) AddProject(p *domain.Project) (*domain.Project, error) {
     }
     return out, err
 }
+func (r *RepoImpl) UpdateProject(p *domain.Project) (*domain.Project, error) {
+    out, err := r.dao.UpdateProject(p)
+    if err == nil && out != nil {
+        r.cache.SetProject(out)
+        r.cache.InvalidateProjects()
+    }
+    return out, err
+}
+func (r *RepoImpl) DeleteProject(id int64) error {
+    err := r.dao.DeleteProject(id)
+    if err == nil {
+        // Invalidate cache entries
+        // Remove specific project and list cache
+        // Note: MemoryCache does not expose delete; re-invalidate list is sufficient
+        r.cache.InvalidateProjects()
+    }
+    return err
+}
+func (r *RepoImpl) SetProjectArchived(id int64, archived bool) error {
+    err := r.dao.SetProjectArchived(id, archived)
+    if err == nil { r.cache.InvalidateProjects() }
+    return err
+}
 func (r *RepoImpl) ListProjects() []*domain.Project {
 	if ps := r.cache.ListProjects(); ps != nil {
 		return ps
@@ -127,5 +153,6 @@ func (r *RepoImpl) AddFeedback(f *domain.Feedback) (*domain.Feedback, error) { r
 func (r *RepoImpl) ListFeedbacks() []*domain.Feedback               { return r.dao.ListFeedbacks() }
 func (r *RepoImpl) AddDocument(d *domain.Document) (*domain.Document, error) { return r.dao.AddDocument(d) }
 func (r *RepoImpl) ListDocumentsByApplication(appID int64) []*domain.Document {
-	return r.dao.ListDocumentsByApplication(appID)
+    return r.dao.ListDocumentsByApplication(appID)
 }
+func (r *RepoImpl) GetDocument(id int64) *domain.Document { return r.dao.GetDocument(id) }

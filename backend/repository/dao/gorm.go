@@ -60,6 +60,22 @@ func (d *GormDAO) GetProject(id int64) *domain.Project {
     return &p
 }
 
+func (d *GormDAO) UpdateProject(p *domain.Project) (*domain.Project, error) {
+    m := map[string]any{"title": p.Title, "description": p.Description, "requirements": p.Requirements, "tags": p.Tags, "archived": p.Archived}
+    if err := d.db.Model(&domain.Project{}).Where("id = ?", p.ID).Updates(m).Error; err != nil { return nil, err }
+    var out domain.Project
+    if err := d.db.First(&out, p.ID).Error; err != nil { return nil, err }
+    return &out, nil
+}
+
+func (d *GormDAO) DeleteProject(id int64) error { // soft delete => archived
+    return d.db.Model(&domain.Project{}).Where("id = ?", id).Update("archived", true).Error
+}
+
+func (d *GormDAO) SetProjectArchived(id int64, archived bool) error {
+    return d.db.Model(&domain.Project{}).Where("id = ?", id).Update("archived", archived).Error
+}
+
 func (d *GormDAO) AddApplication(a *domain.Application) (*domain.Application, error) {
     tx := d.db.Create(a)
     return a, tx.Error
@@ -112,4 +128,9 @@ func (d *GormDAO) ListDocumentsByApplication(appID int64) []*domain.Document {
     var out []*domain.Document
     for i := range items { out = append(out, &items[i]) }
     return out
+}
+func (d *GormDAO) GetDocument(id int64) *domain.Document {
+    var doc domain.Document
+    if err := d.db.First(&doc, id).Error; err != nil { return nil }
+    return &doc
 }

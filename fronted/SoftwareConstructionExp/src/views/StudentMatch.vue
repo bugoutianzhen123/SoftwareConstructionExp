@@ -4,9 +4,10 @@ import { api } from '../api'
 import FilterBar from '../components/FilterBar.vue'
 const userId = Number(sessionStorage.getItem('user_id')||0)
 const matches = ref([])
+const loading = ref(false)
 const error = ref('')
 const matchQuery = ref('')
-async function loadData() { try { matches.value = await api.matches(userId, 'fast=1&top_k=5') } catch(e){ error.value=e.message } }
+async function loadData() { try { loading.value = true; matches.value = await api.matches(userId, 'fast=1&top_k=5') } catch(e){ error.value=e.message } finally { loading.value = false } }
 function filteredMatches() {
   if (!matchQuery.value) return matches.value
   const q = matchQuery.value.toLowerCase()
@@ -22,7 +23,8 @@ onMounted(loadData)
       <FilterBar placeholder="搜索项目或理由" @update:query="v=>matchQuery=v" />
       <button class="btn" @click="loadData">刷新</button>
     </div>
-    <div v-if="filteredMatches().length===0">暂无匹配</div>
+    <div v-if="loading">加载中…</div>
+    <div v-else-if="filteredMatches().length===0">暂无匹配</div>
     <ul class="list">
       <li v-for="m in filteredMatches()" :key="m.project.id">
         <b>{{ m.project.title }}</b> | 匹配度: {{ (m.score*100).toFixed(0) }}% | {{ m.reason }}

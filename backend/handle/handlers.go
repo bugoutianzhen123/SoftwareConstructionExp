@@ -83,12 +83,64 @@ func (h *Handlers) CreateProject(c *gin.Context) {
     c.JSON(201, created)
 }
 
+func (h *Handlers) UpdateProject(c *gin.Context) {
+    var p domain.Project
+    if !parseJSON(c, &p) { return }
+    if p.ID == 0 { c.JSON(400, gin.H{"error":"缺少项目ID"}); return }
+    // Only teacher(owner) or admin can update; admin allowed by router
+    if cu := currentUser(c); cu != nil && cu.Role == domain.RoleTeacher {
+        cur := h.svc.Repo().GetProject(p.ID)
+        if cur == nil { c.JSON(404, gin.H{"error":"项目不存在"}); return }
+        if cur.TeacherID != cu.ID { c.JSON(403, gin.H{"error":"无权修改该项目"}); return }
+        // ensure teacher_id not changed
+        p.TeacherID = cur.TeacherID
+    }
+    out, err := h.svc.UpdateProject(&p)
+    if err != nil { c.JSON(400, gin.H{"error": err.Error()}); return }
+    c.JSON(200, out)
+}
+
+func (h *Handlers) DeleteProject(c *gin.Context) {
+    idStr := c.Query("id")
+    if idStr == "" { c.JSON(400, gin.H{"error":"缺少项目ID"}); return }
+    id, err := strconv.ParseInt(idStr, 10, 64)
+    if err != nil { c.JSON(400, gin.H{"error":"项目ID格式错误"}); return }
+    if cu := currentUser(c); cu != nil && cu.Role == domain.RoleTeacher {
+        cur := h.svc.Repo().GetProject(id)
+        if cur == nil { c.JSON(404, gin.H{"error":"项目不存在"}); return }
+        if cur.TeacherID != cu.ID { c.JSON(403, gin.H{"error":"无权删除该项目"}); return }
+    }
+    if err := h.svc.DeleteProject(id); err != nil { c.JSON(400, gin.H{"error": err.Error()}); return }
+    c.JSON(200, gin.H{"ok": true})
+}
+
+func (h *Handlers) ArchiveProject(c *gin.Context) {
+    var b struct { ID int64 `json:"id"`; Archived bool `json:"archived"` }
+    if !parseJSON(c, &b) { return }
+    if b.ID == 0 { c.JSON(400, gin.H{"error":"缺少项目ID"}); return }
+    if cu := currentUser(c); cu != nil && cu.Role == domain.RoleTeacher {
+        cur := h.svc.Repo().GetProject(b.ID)
+        if cur == nil { c.JSON(404, gin.H{"error":"项目不存在"}); return }
+        if cur.TeacherID != cu.ID { c.JSON(403, gin.H{"error":"无权归档该项目"}); return }
+    }
+    if err := h.svc.SetProjectArchived(b.ID, b.Archived); err != nil { c.JSON(400, gin.H{"error": err.Error()}); return }
+    c.JSON(200, gin.H{"ok": true})
+}
+
 func (h *Handlers) ListProjects(c *gin.Context) {
     teacher := c.Query("teacher_id")
     page := 1; size := 50
     if v := c.Query("page"); v != "" { if n, err := strconv.Atoi(v); err==nil && n>0 { page=n } }
     if v := c.Query("page_size"); v != "" { if n, err := strconv.Atoi(v); err==nil && n>0 { size=n } }
     list := h.svc.ListProjects(teacher)
+    arch := c.Query("archived")
+    var filtered []*domain.Project
+    if arch == "1" {
+        for _, p := range list { if p.Archived { filtered = append(filtered, p) } }
+    } else {
+        for _, p := range list { if !p.Archived { filtered = append(filtered, p) } }
+    }
+    list = filtered
     start := (page-1)*size; if start < 0 { start = 0 }
     end := start+size; if end > len(list) { end = len(list) }
     if start > len(list) { list = []*domain.Project{} } else { list = list[start:end] }
