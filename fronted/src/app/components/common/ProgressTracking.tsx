@@ -1,21 +1,27 @@
-import { useState, useEffect } from 'react';
-import { applicationApi, trackingApi } from '../../../lib/api';
-import { auth } from '../../../lib/auth';
-import type { ApplicationView, Tracking } from '../../../types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
+import { useState, useEffect } from "react";
+import { applicationApi, trackingApi } from "../../../lib/api";
+import { auth } from "../../../lib/auth";
+import type { ApplicationView, Tracking } from "../../../types";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '../ui/dialog';
-import { ScrollArea } from '../ui/scroll-area';
-import { Loader2, TrendingUp, Plus, CheckCircle } from 'lucide-react';
-import { toast } from 'sonner';
+} from "../ui/dialog";
+import { ScrollArea } from "../ui/scroll-area";
+import { Loader2, TrendingUp, Plus, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export function ProgressTracking() {
   const [applications, setApplications] = useState<ApplicationView[]>([]);
@@ -24,7 +30,7 @@ export function ProgressTracking() {
   const [loading, setLoading] = useState(true);
   const [loadingTracking, setLoadingTracking] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [newProgress, setNewProgress] = useState('');
+  const [newProgress, setNewProgress] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const currentUser = auth.getUser();
@@ -40,16 +46,22 @@ export function ProgressTracking() {
       setLoading(true);
       let apps: ApplicationView[];
 
-      if (currentUser.role === 'student') {
-        apps = await applicationApi.getMyApplications({ status: 'approved' });
+      if (currentUser.role === "student") {
+        apps = await applicationApi.getMyApplications({
+          status: "approved",
+          fast: true,
+          scores: false,
+        });
       } else {
-        const allApps = await applicationApi.getApplications({ 
-          status: 'approved',
-          fast: true 
+        const allApps = await applicationApi.getApplications({
+          status: "approved",
+          fast: true,
         });
         // 教师和管理员可以看到自己项目的申请
-        if (currentUser.role === 'teacher') {
-          apps = allApps.filter(app => app.project.teacher_id === currentUser.id);
+        if (currentUser.role === "teacher") {
+          apps = allApps.filter(
+            (app) => app.project.teacher_id === currentUser.id
+          );
         } else {
           apps = allApps;
         }
@@ -57,7 +69,7 @@ export function ProgressTracking() {
 
       setApplications(apps);
     } catch (error) {
-      toast.error('加载申请失败');
+      toast.error("加载申请失败");
     } finally {
       setLoading(false);
     }
@@ -69,7 +81,7 @@ export function ProgressTracking() {
       const data = await trackingApi.getTracking(applicationId);
       setTrackings(data);
     } catch (error) {
-      toast.error('加载进度失败');
+      toast.error("加载进度失败");
     } finally {
       setLoadingTracking(false);
     }
@@ -90,12 +102,12 @@ export function ProgressTracking() {
         application_id: selectedApp.application.id,
         progress: newProgress.trim(),
       });
-      toast.success('进度添加成功');
-      setNewProgress('');
+      toast.success("进度添加成功");
+      setNewProgress("");
       setShowAddDialog(false);
       await loadTracking(selectedApp.application.id);
     } catch (error) {
-      toast.error('添加进度失败');
+      toast.error("添加进度失败");
     } finally {
       setSubmitting(false);
     }
@@ -126,14 +138,16 @@ export function ProgressTracking() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {applications.map((app) => (
-            <Card key={app.application.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={app.application.id}
+              className="hover:shadow-md transition-shadow"
+            >
               <CardHeader>
                 <CardTitle className="text-lg">{app.project.title}</CardTitle>
                 <CardDescription>
-                  {currentUser?.role === 'student' 
+                  {currentUser?.role === "student"
                     ? `申请 ID: #${app.application.id}`
-                    : `学生: ${app.student.name}`
-                  }
+                    : `学生: ${app.student.name}`}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -144,8 +158,8 @@ export function ProgressTracking() {
                     已通过
                   </span>
                 </div>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full"
                   onClick={() => handleViewProgress(app)}
                 >
@@ -165,19 +179,19 @@ export function ProgressTracking() {
             <DialogTitle>{selectedApp?.project.title}</DialogTitle>
             <DialogDescription>项目进度跟踪</DialogDescription>
           </DialogHeader>
-          
+
           <ScrollArea className="max-h-[60vh] pr-4">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">
-                    {currentUser?.role === 'student' 
+                    {currentUser?.role === "student"
                       ? `申请 ID: #${selectedApp?.application.id}`
-                      : `学生: ${selectedApp?.student.name}`
-                    }
+                      : `学生: ${selectedApp?.student.name}`}
                   </p>
                 </div>
-                {(currentUser?.role === 'teacher' || currentUser?.role === 'admin') && (
+                {(currentUser?.role === "teacher" ||
+                  currentUser?.role === "admin") && (
                   <Button onClick={() => setShowAddDialog(true)} size="sm">
                     <Plus className="h-4 w-4 mr-2" />
                     添加进度
@@ -209,13 +223,16 @@ export function ProgressTracking() {
                         <div className="flex-1 pb-4">
                           <p className="font-medium">{tracking.progress}</p>
                           <p className="text-sm text-gray-500 mt-1">
-                            {new Date(tracking.created_at).toLocaleString('zh-CN', {
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                            {new Date(tracking.created_at).toLocaleString(
+                              "zh-CN",
+                              {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
                           </p>
                         </div>
                       </div>
@@ -226,7 +243,8 @@ export function ProgressTracking() {
                 <div className="text-center py-12">
                   <TrendingUp className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                   <p className="text-gray-600 mb-4">暂无进度记录</p>
-                  {(currentUser?.role === 'teacher' || currentUser?.role === 'admin') && (
+                  {(currentUser?.role === "teacher" ||
+                    currentUser?.role === "admin") && (
                     <Button onClick={() => setShowAddDialog(true)}>
                       <Plus className="h-4 w-4 mr-2" />
                       添加第一条进度
@@ -248,7 +266,7 @@ export function ProgressTracking() {
               为 {selectedApp?.project.title} 添加新的进度记录
             </DialogDescription>
           </DialogHeader>
-          
+
           <form onSubmit={handleAddProgress} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="progress">进度描述</Label>
@@ -269,15 +287,15 @@ export function ProgressTracking() {
                     添加中...
                   </>
                 ) : (
-                  '添加进度'
+                  "添加进度"
                 )}
               </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => {
                   setShowAddDialog(false);
-                  setNewProgress('');
+                  setNewProgress("");
                 }}
               >
                 取消

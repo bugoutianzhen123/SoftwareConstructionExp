@@ -134,7 +134,7 @@ func (h *Handlers) ListProjects(c *gin.Context) {
     if v := c.Query("page_size"); v != "" { if n, err := strconv.Atoi(v); err==nil && n>0 { size=n } }
     list := h.svc.ListProjects(teacher)
     arch := c.Query("archived")
-    var filtered []*domain.Project
+    filtered := make([]*domain.Project, 0)
     if arch == "1" {
         for _, p := range list { if p.Archived { filtered = append(filtered, p) } }
     } else {
@@ -213,6 +213,20 @@ func (h *Handlers) Matches(c *gin.Context) {
     c.JSON(200, res)
 }
 
+func (h *Handlers) AnalyzeApplications(c *gin.Context) {
+    tidStr := c.Query("teacher_id")
+    if tidStr == "" { c.JSON(400, gin.H{"error":"缺少teacher_id"}); return }
+    tid, err := strconv.ParseInt(tidStr, 10, 64)
+    if err != nil { c.JSON(400, gin.H{"error":"teacher_id格式错误"}); return }
+    cu := currentUser(c)
+    if cu != nil && cu.Role == domain.RoleTeacher && cu.ID != tid { c.JSON(403, gin.H{"error":"只能分析本人项目的申请"}); return }
+    fast := false
+    if v := c.Query("fast"); v == "1" || v == "true" { fast = true }
+    views, err := h.svc.AnalyzeApplicationsForTeacher(tid, c.Query("project_id"), fast)
+    if err != nil { c.JSON(400, gin.H{"error": err.Error()}); return }
+    c.JSON(200, views)
+}
+
 func (h *Handlers) ListApplications(c *gin.Context) {
     page := 1; size := 50
     if v := c.Query("page"); v != "" { if n, err := strconv.Atoi(v); err==nil && n>0 { page=n } }
@@ -230,7 +244,19 @@ func (h *Handlers) ListMyApplications(c *gin.Context) {
     page := 1; size := 50
     if v := c.Query("page"); v != "" { if n, err := strconv.Atoi(v); err==nil && n>0 { page=n } }
     if v := c.Query("page_size"); v != "" { if n, err := strconv.Atoi(v); err==nil && n>0 { size=n } }
-    views, err := h.svc.ListStudentApplicationsWithScores(cu.ID, c.Query("status"))
+    fast := false
+    if v := c.Query("fast"); v == "1" || v == "true" { fast = true }
+    computeScores := true
+    if v := c.Query("scores"); v == "0" || v == "false" { computeScores = false }
+    var views []domain.ApplicationView
+    var err error
+    if !computeScores {
+        views, err = h.svc.ListStudentApplicationsPlain(cu.ID, c.Query("status"))
+    } else if fast {
+        views, err = h.svc.ListStudentApplicationsWithScoresOpt(cu.ID, c.Query("status"), true)
+    } else {
+        views, err = h.svc.ListStudentApplicationsWithScores(cu.ID, c.Query("status"))
+    }
     if err != nil { c.JSON(400, gin.H{"error": err.Error()}); return }
     start := (page-1)*size; if start < 0 { start = 0 }
     end := start+size; if end > len(views) { end = len(views) }

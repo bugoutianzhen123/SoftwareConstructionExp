@@ -26,29 +26,43 @@ export function ProjectBrowse() {
       setLoading(true);
       const data = await projectApi.getProjects({ archived: 0 });
       setProjects(data);
-
-      // 加载教师信息
-      const teacherIds = [...new Set(data.map(p => p.teacher_id))];
-      const teacherMap = new Map<number, User>();
-      
-      await Promise.all(
-        teacherIds.map(async (id) => {
-          try {
-            const teacher = await userApi.getUser(id);
-            teacherMap.set(id, teacher);
-          } catch (error) {
-            console.error(`Failed to load teacher ${id}`, error);
-          }
-        })
-      );
-      
-      setTeachers(teacherMap);
-    } catch (error) {
-      toast.error('加载项目失败');
+      const teachers = await userApi.getUsers({ role: "teacher" });
+      const map = new Map<number, User>();
+      for (const t of teachers) map.set(t.id, t);
+      setTeachers(map);
+    } catch {
     } finally {
       setLoading(false);
     }
   };
+  // const loadProjects = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const data = await projectApi.getProjects({ archived: 0 });
+  //     setProjects(data);
+
+  //     // 加载教师信息
+  //     const teacherIds = [...new Set(data.map(p => p.teacher_id))];
+  //     const teacherMap = new Map<number, User>();
+      
+  //     await Promise.all(
+  //       teacherIds.map(async (id) => {
+  //         try {
+  //           const teacher = await userApi.getUser(id);
+  //           teacherMap.set(id, teacher);
+  //         } catch (error) {
+  //           console.error(`Failed to load teacher ${id}`, error);
+  //         }
+  //       })
+  //     );
+      
+  //     setTeachers(teacherMap);
+  //   } catch (error) {
+  //     toast.error('加载项目失败');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleApply = async (projectId: number) => {
     if (!currentUser) return;

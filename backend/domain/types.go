@@ -66,6 +66,14 @@ type ApplicationView struct {
     Score       float64      `json:"score"`
 }
 
+type ApplicationAnalysis struct {
+    Application *Application `json:"application"`
+    Student     *User        `json:"student"`
+    Project     *Project     `json:"project"`
+    Score       float64      `json:"score"`
+    Reason      string       `json:"reason"`
+}
+
 type MatchResult struct {
     Project *Project `json:"project"`
     Score   float64  `json:"score"`

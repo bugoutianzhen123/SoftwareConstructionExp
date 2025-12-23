@@ -1,48 +1,54 @@
-import { useState, useEffect } from 'react';
-import { Toaster } from './components/ui/sonner';
-import { auth } from '../lib/auth';
-import type { User } from '../types';
+import { useState, useEffect } from "react";
+import { Toaster } from "./components/ui/sonner";
+import { auth } from "../lib/auth";
+import type { User } from "../types";
 
 // 认证页面
-import { LoginPage } from './components/auth/LoginPage';
-import { RegisterPage } from './components/auth/RegisterPage';
+import { LoginPage } from "./components/auth/LoginPage";
+import { RegisterPage } from "./components/auth/RegisterPage";
 
 // 布局
-import { DashboardLayout } from './components/layout/DashboardLayout';
+import { DashboardLayout } from "./components/layout/DashboardLayout";
 
 // 学生组件
-import { StudentDashboard } from './components/student/StudentDashboard';
-import { ProjectBrowse } from './components/student/ProjectBrowse';
-import { SmartMatch } from './components/student/SmartMatch';
-import { MyApplications } from './components/student/MyApplications';
+import { StudentDashboard } from "./components/student/StudentDashboard";
+import { ProjectBrowse } from "./components/student/ProjectBrowse";
+import { SmartMatch } from "./components/student/SmartMatch";
+import { MyApplications } from "./components/student/MyApplications";
 
 // 教师组件
-import { TeacherDashboard } from './components/teacher/TeacherDashboard';
-import { ProjectManagement } from './components/teacher/ProjectManagement';
-import { ApplicationReview } from './components/teacher/ApplicationReview';
+import { TeacherDashboard } from "./components/teacher/TeacherDashboard";
+import { ProjectManagement } from "./components/teacher/ProjectManagement";
+import { ApplicationReview } from "./components/teacher/ApplicationReview";
 
 // 管理员组件
-import { UserManagement } from './components/admin/UserManagement';
-import { SystemStats } from './components/admin/SystemStats';
-import { AdminDashboard } from './components/admin/AdminDashboard';
+import { UserManagement } from "./components/admin/UserManagement";
+import { SystemStats } from "./components/admin/SystemStats";
+import { AdminDashboard } from "./components/admin/AdminDashboard";
+import { AdminProjectList } from "./components/admin/AdminProjectList";
+import { AdminApplicationList } from "./components/admin/AdminApplicationList";
 
 // 通用组件
-import { Settings } from './components/common/Settings';
-import { ProgressTracking } from './components/common/ProgressTracking';
+import { Settings } from "./components/common/Settings";
+import { ProgressTracking } from "./components/common/ProgressTracking";
 
-type AuthView = 'login' | 'register';
+type AuthView = "login" | "register";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authView, setAuthView] = useState<AuthView>('login');
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [authView, setAuthView] = useState<AuthView>("login");
+  const [currentView, setCurrentView] = useState(
+    () => sessionStorage.getItem("currentView") || "dashboard"
+  );
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     // 检查是否已登录
     const token = auth.getToken();
     const savedUser = auth.getUser();
-    
+
     if (token && savedUser) {
       setIsAuthenticated(true);
       setUser(savedUser);
@@ -53,34 +59,35 @@ export default function App() {
     const savedUser = auth.getUser();
     setUser(savedUser);
     setIsAuthenticated(true);
-    setCurrentView('dashboard');
+    setCurrentView("dashboard");
   };
 
   const handleLogout = () => {
     auth.logout();
     setIsAuthenticated(false);
     setUser(null);
-    setCurrentView('dashboard');
-    setAuthView('login');
+    setCurrentView("dashboard");
+    setAuthView("login");
   };
 
   const handleViewChange = (view: string) => {
     setCurrentView(view);
+    sessionStorage.setItem("currentView", view);
   };
 
   // 未登录时显示认证页面
   if (!isAuthenticated) {
     return (
       <>
-        {authView === 'login' ? (
+        {authView === "login" ? (
           <LoginPage
             onLoginSuccess={handleLoginSuccess}
-            onSwitchToRegister={() => setAuthView('register')}
+            onSwitchToRegister={() => setAuthView("register")}
           />
         ) : (
           <RegisterPage
             onRegisterSuccess={handleLoginSuccess}
-            onSwitchToLogin={() => setAuthView('login')}
+            onSwitchToLogin={() => setAuthView("login")}
           />
         )}
         <Toaster position="top-right" />
@@ -93,19 +100,19 @@ export default function App() {
     if (!user) return null;
 
     // 学生视图
-    if (user.role === 'student') {
+    if (user.role === "student") {
       switch (currentView) {
-        case 'dashboard':
+        case "dashboard":
           return <StudentDashboard onNavigate={handleViewChange} />;
-        case 'projects':
+        case "projects":
           return <ProjectBrowse />;
-        case 'matches':
+        case "matches":
           return <SmartMatch />;
-        case 'applications':
+        case "applications":
           return <MyApplications />;
-        case 'progress':
+        case "progress":
           return <ProgressTracking />;
-        case 'settings':
+        case "settings":
           return <Settings />;
         default:
           return <StudentDashboard onNavigate={handleViewChange} />;
@@ -113,19 +120,19 @@ export default function App() {
     }
 
     // 教师视图
-    if (user.role === 'teacher') {
+    if (user.role === "teacher") {
       switch (currentView) {
-        case 'dashboard':
+        case "dashboard":
           return <TeacherDashboard onNavigate={handleViewChange} />;
-        case 'my-projects':
+        case "my-projects":
           return <ProjectManagement />;
-        case 'applications':
+        case "applications":
           return <ApplicationReview />;
-        case 'progress':
+        case "progress":
           return <ProgressTracking />;
-        case 'feedback':
+        case "feedback":
           return <ApplicationReview />;
-        case 'settings':
+        case "settings":
           return <Settings />;
         default:
           return <TeacherDashboard onNavigate={handleViewChange} />;
@@ -133,19 +140,19 @@ export default function App() {
     }
 
     // 管理员视图
-    if (user.role === 'admin') {
+    if (user.role === "admin") {
       switch (currentView) {
-        case 'dashboard':
+        case "dashboard":
           return <AdminDashboard onNavigate={handleViewChange} />;
-        case 'users':
+        case "users":
           return <UserManagement />;
-        case 'projects':
-          return <ProjectManagement />;
-        case 'applications':
-          return <ApplicationReview />;
-        case 'stats':
+        case "projects":
+          return <AdminProjectList />;
+        case "applications":
+          return <AdminApplicationList />;
+        case "stats":
           return <SystemStats />;
-        case 'settings':
+        case "settings":
           return <Settings />;
         default:
           return <AdminDashboard onNavigate={handleViewChange} />;

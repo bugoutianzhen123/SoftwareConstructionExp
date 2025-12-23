@@ -78,7 +78,8 @@ func NewRouter(h *handle.Handlers, ah *handle.AuthHandlers, repo repository.Repo
 
     matches := api.Group("/matches")
     matches.GET("", auth.RequireRole(domain.RoleStudent, domain.RoleAdmin), h.Matches)
-
+    matches.GET("/analyze", auth.RequireRole(domain.RoleTeacher, domain.RoleAdmin), h.AnalyzeApplications)
+    
     applications := api.Group("/applications")
     applications.GET("", auth.RequireRole(domain.RoleTeacher, domain.RoleAdmin), h.ListApplications)
     applications.GET("/mine", auth.RequireRole(domain.RoleStudent), h.ListMyApplications)
@@ -86,6 +87,7 @@ func NewRouter(h *handle.Handlers, ah *handle.AuthHandlers, repo repository.Repo
     application := api.Group("/application")
     application.POST("/status", auth.RequireRole(domain.RoleTeacher, domain.RoleAdmin), h.UpdateApplicationStatus)
 
+    
     tracking := api.Group("/tracking")
     tracking.POST("", auth.RequireRole(domain.RoleStudent, domain.RoleTeacher, domain.RoleAdmin), h.Tracking)
     tracking.GET("", auth.RequireRole(domain.RoleStudent, domain.RoleTeacher, domain.RoleAdmin), h.ListTrackings)

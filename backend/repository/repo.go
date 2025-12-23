@@ -32,6 +32,7 @@ type Repo interface {
     AddDocument(d *domain.Document) (*domain.Document, error)
     ListDocumentsByApplication(appID int64) []*domain.Document
     GetDocument(id int64) *domain.Document
+    ListApplicationsByStudent(studentID int64, status string) []*domain.Application
 }
 
 type RepoImpl struct {
@@ -146,6 +147,9 @@ func (r *RepoImpl) ListApplications() []*domain.Application     { return r.dao.L
 func (r *RepoImpl) GetApplication(id int64) *domain.Application { return r.dao.GetApplication(id) }
 func (r *RepoImpl) UpdateApplicationStatus(id int64, status string) error {
 	return r.dao.UpdateApplicationStatus(id, status)
+}
+func (r *RepoImpl) ListApplicationsByStudent(studentID int64, status string) []*domain.Application {
+    return r.dao.ListApplicationsByStudent(studentID, status)
 }
 func (r *RepoImpl) AddTracking(t *domain.Tracking) (*domain.Tracking, error) { return r.dao.AddTracking(t) }
 func (r *RepoImpl) ListTrackingsByApplication(appID int64) []*domain.Tracking { return r.dao.ListTrackingsByApplication(appID) }

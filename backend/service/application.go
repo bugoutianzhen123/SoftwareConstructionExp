@@ -68,11 +68,9 @@ func (s *Service) ListApplicationsWithScoresOpt(projectID, status string, page, 
 }
 
 func (s *Service) ListStudentApplicationsWithScores(studentID int64, status string) ([]domain.ApplicationView, error) {
-    apps := s.repo.ListApplications()
+    apps := s.repo.ListApplicationsByStudent(studentID, status)
     var views []domain.ApplicationView
     for _, a := range apps {
-        if a.StudentID != studentID { continue }
-        if status != "" && a.Status != status { continue }
         stu := s.repo.GetUser(a.StudentID)
         proj := s.repo.GetProject(a.ProjectID)
         if stu == nil || proj == nil { continue }
@@ -82,6 +80,59 @@ func (s *Service) ListStudentApplicationsWithScores(studentID int64, status stri
         views = append(views, domain.ApplicationView{Application: a, Student: stu, Project: proj, Score: score})
     }
     return views, nil
+}
+
+func (s *Service) ListStudentApplicationsWithScoresOpt(studentID int64, status string, useSimple bool) ([]domain.ApplicationView, error) {
+    var matcher domain.Matcher = s.matcher
+    if useSimple || os.Getenv("SC_LLM_LIST_DISABLE") == "1" {
+        matcher = SimpleMatcher{}
+    }
+    apps := s.repo.ListApplicationsByStudent(studentID, status)
+    var views []domain.ApplicationView
+    for _, a := range apps {
+        stu := s.repo.GetUser(a.StudentID)
+        proj := s.repo.GetProject(a.ProjectID)
+        if stu == nil || proj == nil { continue }
+        score := 0.0
+        res := matcher.Match(stu, []*domain.Project{proj})
+        if len(res) > 0 { score = res[0].Score }
+        views = append(views, domain.ApplicationView{Application: a, Student: stu, Project: proj, Score: score})
+    }
+    return views, nil
+}
+
+func (s *Service) ListStudentApplicationsPlain(studentID int64, status string) ([]domain.ApplicationView, error) {
+    apps := s.repo.ListApplicationsByStudent(studentID, status)
+    var views []domain.ApplicationView
+    for _, a := range apps {
+        stu := s.repo.GetUser(a.StudentID)
+        proj := s.repo.GetProject(a.ProjectID)
+        if stu == nil || proj == nil { continue }
+        views = append(views, domain.ApplicationView{Application: a, Student: stu, Project: proj, Score: 0})
+    }
+    return views, nil
+}
+
+func (s *Service) AnalyzeApplicationsForTeacher(teacherID int64, projectID string, useSimple bool) ([]domain.ApplicationAnalysis, error) {
+    var pid int64
+    if projectID != "" { pid, _ = strconv.ParseInt(projectID, 10, 64) }
+    apps := s.repo.ListApplications()
+    var matcher domain.Matcher = s.matcher
+    if useSimple || os.Getenv("SC_LLM_LIST_DISABLE") == "1" { matcher = SimpleMatcher{} }
+    var out []domain.ApplicationAnalysis
+    for _, a := range apps {
+        proj := s.repo.GetProject(a.ProjectID)
+        if proj == nil || proj.TeacherID != teacherID { continue }
+        if projectID != "" && a.ProjectID != pid { continue }
+        stu := s.repo.GetUser(a.StudentID)
+        if stu == nil { continue }
+        res := matcher.Match(stu, []*domain.Project{proj})
+        score := 0.0
+        reason := ""
+        if len(res) > 0 { score = res[0].Score; reason = res[0].Reason }
+        out = append(out, domain.ApplicationAnalysis{Application: a, Student: stu, Project: proj, Score: score, Reason: reason})
+    }
+    return out, nil
 }
 
 func (s *Service) UpdateApplicationStatus(appID int64, status string) error {

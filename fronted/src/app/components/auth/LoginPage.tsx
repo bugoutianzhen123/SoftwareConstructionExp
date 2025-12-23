@@ -1,20 +1,29 @@
-import { useState } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { authApi } from '../../../lib/api';
-import { auth } from '../../../lib/auth';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { authApi } from "../../../lib/api";
+import { auth } from "../../../lib/auth";
+import { toast } from "sonner";
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
   onSwitchToRegister: () => void;
 }
 
-export function LoginPage({ onLoginSuccess, onSwitchToRegister }: LoginPageProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export function LoginPage({
+  onLoginSuccess,
+  onSwitchToRegister,
+}: LoginPageProps) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -24,16 +33,18 @@ export function LoginPage({ onLoginSuccess, onSwitchToRegister }: LoginPageProps
     try {
       const response = await authApi.login(email, password);
       auth.setToken(response.token);
-      
+
       // 获取用户信息
-      const { userApi } = await import('../../../lib/api');
+      const { userApi } = await import("../../../lib/api");
       const user = await userApi.getMe();
       auth.setUser(user);
-      
-      toast.success('登录成功！');
+
+      toast.success("登录成功！");
       onLoginSuccess();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : '登录失败，请检查邮箱和密码');
+      toast.error(
+        error instanceof Error ? error.message : "登录失败，请检查邮箱和密码"
+      );
     } finally {
       setLoading(false);
     }
@@ -54,11 +65,12 @@ export function LoginPage({ onLoginSuccess, onSwitchToRegister }: LoginPageProps
               <Label htmlFor="email">邮箱</Label>
               <Input
                 id="email"
-                type="email"
-                placeholder="your@email.com"
+                type="text"
+                //placeholder="your@email.com"
+                placeholder="账号或邮箱"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
+                //required
               />
             </div>
             <div className="space-y-2">
@@ -69,15 +81,15 @@ export function LoginPage({ onLoginSuccess, onSwitchToRegister }: LoginPageProps
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                //required
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? '登录中...' : '登录'}
+              {loading ? "登录中..." : "登录"}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            还没有账户？{' '}
+            还没有账户？{" "}
             <button
               type="button"
               onClick={onSwitchToRegister}

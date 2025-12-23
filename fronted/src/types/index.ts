@@ -3,7 +3,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'student' | 'teacher' | 'admin';
+  role: "student" | "teacher" | "admin";
   skills: string[];
 }
 
@@ -21,7 +21,7 @@ export interface Application {
   id: number;
   student_id: number;
   project_id: number;
-  status: 'submitted' | 'approved' | 'rejected';
+  status: "submitted" | "approved" | "rejected";
 }
 
 export interface Tracking {
@@ -53,6 +53,14 @@ export interface ApplicationView {
   student: User;
   project: Project;
   score?: number;
+}
+
+export interface ApplicationAnalysis {
+  application: Application;
+  student: User;
+  project: Project;
+  score: number;
+  reason: string;
 }
 
 export interface MatchResult {

@@ -26,4 +26,5 @@ type DAO interface {
     AddDocument(d *domain.Document) (*domain.Document, error)
     ListDocumentsByApplication(appID int64) []*domain.Document
     GetDocument(id int64) *domain.Document
+    ListApplicationsByStudent(studentID int64, status string) []*domain.Application
 }

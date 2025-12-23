@@ -87,6 +87,18 @@ func (d *GormDAO) ListApplications() []*domain.Application {
     for i := range items { out = append(out, &items[i]) }
     return out
 }
+
+func (d *GormDAO) ListApplicationsByStudent(studentID int64, status string) []*domain.Application {
+    var items []domain.Application
+    q := d.db.Where("student_id = ?", studentID)
+    if status != "" {
+        q = q.Where("status = ?", status)
+    }
+    q.Find(&items)
+    var out []*domain.Application
+    for i := range items { out = append(out, &items[i]) }
+    return out
+}
 func (d *GormDAO) GetApplication(id int64) *domain.Application {
     var a domain.Application
     if err := d.db.First(&a, id).Error; err != nil { return nil }

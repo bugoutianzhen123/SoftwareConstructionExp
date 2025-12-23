@@ -1,10 +1,24 @@
-import { useState, useEffect } from 'react';
-import { applicationApi, projectApi } from '../../../lib/api';
-import type { ApplicationView, Project } from '../../../types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Loader2, FolderKanban, FileText, CheckCircle, Clock, TrendingUp, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { applicationApi, projectApi } from "../../../lib/api";
+import type { ApplicationView, Project } from "../../../types";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { Button } from "../ui/button";
+import {
+  Loader2,
+  FolderKanban,
+  FileText,
+  CheckCircle,
+  Clock,
+  TrendingUp,
+  Sparkles,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface StudentDashboardProps {
   onNavigate: (view: string) => void;
@@ -17,7 +31,9 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
     approved: 0,
     rejected: 0,
   });
-  const [recentApplications, setRecentApplications] = useState<ApplicationView[]>([]);
+  const [recentApplications, setRecentApplications] = useState<
+    ApplicationView[]
+  >([]);
   const [totalProjects, setTotalProjects] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -28,23 +44,29 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       // 加载我的申请
-      const apps = await applicationApi.getMyApplications();
+      const apps = await applicationApi.getMyApplications({
+        fast: true,
+        scores: false,
+      });
       setRecentApplications(apps.slice(0, 5));
-      
+
       setStats({
         totalApplications: apps.length,
-        pending: apps.filter(a => a.application.status === 'submitted').length,
-        approved: apps.filter(a => a.application.status === 'approved').length,
-        rejected: apps.filter(a => a.application.status === 'rejected').length,
+        pending: apps.filter((a) => a.application.status === "submitted")
+          .length,
+        approved: apps.filter((a) => a.application.status === "approved")
+          .length,
+        rejected: apps.filter((a) => a.application.status === "rejected")
+          .length,
       });
 
       // 加载项目总数
       const projects = await projectApi.getProjects({ archived: 0 });
       setTotalProjects(projects.length);
     } catch (error) {
-      toast.error('加载数据失败');
+      toast.error("加载数据失败");
     } finally {
       setLoading(false);
     }
@@ -62,7 +84,9 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold text-gray-900">学生仪表板</h1>
-        <p className="text-gray-600 mt-2">欢迎回来！查看您的申请状态和推荐项目</p>
+        <p className="text-gray-600 mt-2">
+          欢迎回来！查看您的申请状态和推荐项目
+        </p>
       </div>
 
       {/* 统计卡片 */}
@@ -71,7 +95,9 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-gray-900">{stats.totalApplications}</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {stats.totalApplications}
+                </div>
                 <div className="text-sm text-gray-600">总申请数</div>
               </div>
               <FileText className="h-8 w-8 text-gray-400" />
@@ -83,7 +109,9 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {stats.pending}
+                </div>
                 <div className="text-sm text-gray-600">待审核</div>
               </div>
               <Clock className="h-8 w-8 text-yellow-400" />
@@ -95,7 +123,9 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {stats.approved}
+                </div>
                 <div className="text-sm text-gray-600">已通过</div>
               </div>
               <CheckCircle className="h-8 w-8 text-green-400" />
@@ -107,7 +137,9 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-blue-600">{totalProjects}</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {totalProjects}
+                </div>
                 <div className="text-sm text-gray-600">可申请项目</div>
               </div>
               <FolderKanban className="h-8 w-8 text-blue-400" />
@@ -123,10 +155,10 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
           <CardDescription>快速访问常用功能</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="h-auto py-6 flex flex-col gap-2"
-            onClick={() => onNavigate('projects')}
+            onClick={() => onNavigate("projects")}
           >
             <FolderKanban className="h-8 w-8 text-blue-600" />
             <div className="text-center">
@@ -135,10 +167,10 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
             </div>
           </Button>
 
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="h-auto py-6 flex flex-col gap-2"
-            onClick={() => onNavigate('matches')}
+            onClick={() => onNavigate("matches")}
           >
             <Sparkles className="h-8 w-8 text-purple-600" />
             <div className="text-center">
@@ -147,10 +179,10 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
             </div>
           </Button>
 
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="h-auto py-6 flex flex-col gap-2"
-            onClick={() => onNavigate('applications')}
+            onClick={() => onNavigate("applications")}
           >
             <FileText className="h-8 w-8 text-green-600" />
             <div className="text-center">
@@ -170,10 +202,10 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
                 <CardTitle>最近的申请</CardTitle>
                 <CardDescription>查看您最近提交的申请</CardDescription>
               </div>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
-                onClick={() => onNavigate('applications')}
+                onClick={() => onNavigate("applications")}
               >
                 查看全部
               </Button>
@@ -182,7 +214,7 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
           <CardContent>
             <div className="space-y-4">
               {recentApplications.map((app) => (
-                <div 
+                <div
                   key={app.application.id}
                   className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50 transition-colors"
                 >
@@ -193,19 +225,19 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {app.application.status === 'submitted' && (
+                    {app.application.status === "submitted" && (
                       <span className="text-sm text-yellow-600 flex items-center gap-1">
                         <Clock className="h-4 w-4" />
                         待审核
                       </span>
                     )}
-                    {app.application.status === 'approved' && (
+                    {app.application.status === "approved" && (
                       <span className="text-sm text-green-600 flex items-center gap-1">
                         <CheckCircle className="h-4 w-4" />
                         已通过
                       </span>
                     )}
-                    {app.application.status === 'rejected' && (
+                    {app.application.status === "rejected" && (
                       <span className="text-sm text-red-600">已拒绝</span>
                     )}
                   </div>
@@ -230,10 +262,8 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="flex gap-2">
-              <Button onClick={() => onNavigate('projects')}>
-                浏览项目
-              </Button>
-              <Button variant="outline" onClick={() => onNavigate('matches')}>
+              <Button onClick={() => onNavigate("projects")}>浏览项目</Button>
+              <Button variant="outline" onClick={() => onNavigate("matches")}>
                 <Sparkles className="h-4 w-4 mr-2" />
                 智能匹配
               </Button>

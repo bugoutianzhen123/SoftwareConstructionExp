@@ -1,44 +1,50 @@
-import { useState, useEffect } from 'react';
-import { applicationApi, trackingApi, feedbackApi } from '../../../lib/api';
-import { auth } from '../../../lib/auth';
-import type { ApplicationView } from '../../../types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { useState, useEffect } from "react";
+import { applicationApi, trackingApi, feedbackApi } from "../../../lib/api";
+import { auth } from "../../../lib/auth";
+import type { ApplicationView } from "../../../types";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '../ui/dialog';
-import { ScrollArea } from '../ui/scroll-area';
-import { Textarea } from '../ui/textarea';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { 
-  Loader2, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Eye, 
+} from "../ui/dialog";
+import { ScrollArea } from "../ui/scroll-area";
+import { Textarea } from "../ui/textarea";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Loader2,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Eye,
   User,
   Star,
-  MessageSquare
-} from 'lucide-react';
-import { toast } from 'sonner';
+  MessageSquare,
+} from "lucide-react";
+import { toast } from "sonner";
 
 export function ApplicationReview() {
   const [applications, setApplications] = useState<ApplicationView[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<ApplicationView | null>(null);
   const [processing, setProcessing] = useState(false);
-  
+
   // 反馈表单
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   const currentUser = auth.getUser();
@@ -50,15 +56,20 @@ export function ApplicationReview() {
   const loadApplications = async () => {
     try {
       setLoading(true);
-      const data = await applicationApi.getApplications({ fast: true });
-      
-      // 过滤出自己项目的申请
-      const myApplications = data.filter(
-        app => app.project.teacher_id === currentUser?.id
-      );
-      setApplications(myApplications);
+      const data = await applicationApi.getApplications({
+        fast: true,
+        page_size: 50,
+      });
+      if (currentUser && currentUser.role === "teacher") {
+        const myApplications = data.filter(
+          (app) => app.project.teacher_id === currentUser.id
+        );
+        setApplications(myApplications);
+      } else {
+        setApplications(data);
+      }
     } catch (error) {
-      toast.error('加载申请失败');
+      toast.error("加载申请失败");
     } finally {
       setLoading(false);
     }
@@ -68,11 +79,11 @@ export function ApplicationReview() {
     setProcessing(true);
     try {
       await applicationApi.updateStatus(applicationId, status);
-      toast.success(`已${status === 'approved' ? '通过' : '拒绝'}申请`);
+      toast.success(`已${status === "approved" ? "通过" : "拒绝"}申请`);
       loadApplications();
       setSelectedApp(null);
     } catch (error) {
-      toast.error('操作失败');
+      toast.error("操作失败");
     } finally {
       setProcessing(false);
     }
@@ -80,8 +91,8 @@ export function ApplicationReview() {
 
   const handleAddProgress = async () => {
     if (!selectedApp) return;
-    
-    const progress = prompt('请输入进度更新：');
+
+    const progress = prompt("请输入进度更新：");
     if (!progress) return;
 
     try {
@@ -89,9 +100,9 @@ export function ApplicationReview() {
         application_id: selectedApp.application.id,
         progress,
       });
-      toast.success('进度更新成功');
+      toast.success("进度更新成功");
     } catch (error) {
-      toast.error('进度更新失败');
+      toast.error("进度更新失败");
     }
   };
 
@@ -108,12 +119,12 @@ export function ApplicationReview() {
         rating,
         comment,
       });
-      toast.success('反馈提交成功');
+      toast.success("反馈提交成功");
       setShowFeedbackDialog(false);
       setRating(5);
-      setComment('');
+      setComment("");
     } catch (error) {
-      toast.error('反馈提交失败');
+      toast.error("反馈提交失败");
     } finally {
       setSubmittingFeedback(false);
     }
@@ -121,21 +132,21 @@ export function ApplicationReview() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'submitted':
+      case "submitted":
         return (
           <Badge variant="outline" className="gap-1">
             <Clock className="h-3 w-3" />
             待审核
           </Badge>
         );
-      case 'approved':
+      case "approved":
         return (
           <Badge className="bg-green-500 gap-1">
             <CheckCircle className="h-3 w-3" />
             已通过
           </Badge>
         );
-      case 'rejected':
+      case "rejected":
         return (
           <Badge variant="destructive" className="gap-1">
             <XCircle className="h-3 w-3" />
@@ -149,7 +160,7 @@ export function ApplicationReview() {
 
   const filterApplications = (status?: string) => {
     if (!status) return applications;
-    return applications.filter(app => app.application.status === status);
+    return applications.filter((app) => app.application.status === status);
   };
 
   const ApplicationCard = ({ app }: { app: ApplicationView }) => (
@@ -171,13 +182,15 @@ export function ApplicationReview() {
           <div>
             <p className="text-sm font-medium mb-2">学生技能：</p>
             <div className="flex flex-wrap gap-2">
-              {app.student.skills.map(skill => (
-                <Badge key={skill} variant="secondary">{skill}</Badge>
+              {app.student.skills.map((skill) => (
+                <Badge key={skill} variant="secondary">
+                  {skill}
+                </Badge>
               ))}
             </div>
           </div>
         )}
-        
+
         {app.score !== undefined && (
           <div className="bg-blue-50 p-3 rounded-lg">
             <p className="text-sm font-medium">匹配分数</p>
@@ -188,29 +201,33 @@ export function ApplicationReview() {
         )}
 
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => setSelectedApp(app)}
           >
             <Eye className="h-4 w-4 mr-2" />
             查看详情
           </Button>
-          
-          {app.application.status === 'submitted' && (
+
+          {app.application.status === "submitted" && (
             <>
-              <Button 
+              <Button
                 size="sm"
-                onClick={() => handleUpdateStatus(app.application.id, 'approved')}
+                onClick={() =>
+                  handleUpdateStatus(app.application.id, "approved")
+                }
                 disabled={processing}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 通过
               </Button>
-              <Button 
+              <Button
                 variant="destructive"
                 size="sm"
-                onClick={() => handleUpdateStatus(app.application.id, 'rejected')}
+                onClick={() =>
+                  handleUpdateStatus(app.application.id, "rejected")
+                }
                 disabled={processing}
               >
                 <XCircle className="h-4 w-4 mr-2" />
@@ -250,7 +267,7 @@ export function ApplicationReview() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-yellow-600">
-              {filterApplications('submitted').length}
+              {filterApplications("submitted").length}
             </div>
             <div className="text-sm text-gray-600">待审核</div>
           </CardContent>
@@ -258,7 +275,7 @@ export function ApplicationReview() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-green-600">
-              {filterApplications('approved').length}
+              {filterApplications("approved").length}
             </div>
             <div className="text-sm text-gray-600">已通过</div>
           </CardContent>
@@ -269,13 +286,13 @@ export function ApplicationReview() {
         <TabsList>
           <TabsTrigger value="all">全部 ({applications.length})</TabsTrigger>
           <TabsTrigger value="submitted">
-            待审核 ({filterApplications('submitted').length})
+            待审核 ({filterApplications("submitted").length})
           </TabsTrigger>
           <TabsTrigger value="approved">
-            已通过 ({filterApplications('approved').length})
+            已通过 ({filterApplications("approved").length})
           </TabsTrigger>
           <TabsTrigger value="rejected">
-            已拒绝 ({filterApplications('rejected').length})
+            已拒绝 ({filterApplications("rejected").length})
           </TabsTrigger>
         </TabsList>
 
@@ -289,14 +306,16 @@ export function ApplicationReview() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 gap-4">
-              {applications.map(app => <ApplicationCard key={app.application.id} app={app} />)}
+              {applications.map((app) => (
+                <ApplicationCard key={app.application.id} app={app} />
+              ))}
             </div>
           )}
         </TabsContent>
 
         <TabsContent value="submitted" className="space-y-4 mt-6">
           <div className="grid grid-cols-1 gap-4">
-            {filterApplications('submitted').map(app => (
+            {filterApplications("submitted").map((app) => (
               <ApplicationCard key={app.application.id} app={app} />
             ))}
           </div>
@@ -304,7 +323,7 @@ export function ApplicationReview() {
 
         <TabsContent value="approved" className="space-y-4 mt-6">
           <div className="grid grid-cols-1 gap-4">
-            {filterApplications('approved').map(app => (
+            {filterApplications("approved").map((app) => (
               <ApplicationCard key={app.application.id} app={app} />
             ))}
           </div>
@@ -312,7 +331,7 @@ export function ApplicationReview() {
 
         <TabsContent value="rejected" className="space-y-4 mt-6">
           <div className="grid grid-cols-1 gap-4">
-            {filterApplications('rejected').map(app => (
+            {filterApplications("rejected").map((app) => (
               <ApplicationCard key={app.application.id} app={app} />
             ))}
           </div>
@@ -324,11 +343,9 @@ export function ApplicationReview() {
         <DialogContent className="max-w-2xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>申请详情</DialogTitle>
-            <DialogDescription>
-              {selectedApp?.project.title}
-            </DialogDescription>
+            <DialogDescription>{selectedApp?.project.title}</DialogDescription>
           </DialogHeader>
-          
+
           <ScrollArea className="max-h-[60vh] pr-4">
             <div className="space-y-6">
               <div>
@@ -339,18 +356,25 @@ export function ApplicationReview() {
               <div>
                 <h3 className="font-semibold mb-2">申请人信息</h3>
                 <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                  <p className="text-sm"><strong>姓名:</strong> {selectedApp?.student.name}</p>
-                  <p className="text-sm"><strong>邮箱:</strong> {selectedApp?.student.email}</p>
-                  {selectedApp?.student.skills && selectedApp.student.skills.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">技能标签:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedApp.student.skills.map(skill => (
-                          <Badge key={skill} variant="secondary">{skill}</Badge>
-                        ))}
+                  <p className="text-sm">
+                    <strong>姓名:</strong> {selectedApp?.student.name}
+                  </p>
+                  <p className="text-sm">
+                    <strong>邮箱:</strong> {selectedApp?.student.email}
+                  </p>
+                  {selectedApp?.student.skills &&
+                    selectedApp.student.skills.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium mb-2">技能标签:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedApp.student.skills.map((skill) => (
+                            <Badge key={skill} variant="secondary">
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               </div>
 
@@ -365,34 +389,53 @@ export function ApplicationReview() {
                 </div>
               )}
 
-              {selectedApp?.application.status === 'submitted' && (
+              {selectedApp?.application.status === "submitted" && (
                 <div className="flex gap-2 pt-4 border-t">
-                  <Button 
-                    onClick={() => handleUpdateStatus(selectedApp.application.id, 'approved')}
+                  <Button
+                    onClick={() =>
+                      handleUpdateStatus(selectedApp.application.id, "approved")
+                    }
                     disabled={processing}
                     className="flex-1"
                   >
-                    {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                    {processing ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                    )}
                     通过申请
                   </Button>
-                  <Button 
+                  <Button
                     variant="destructive"
-                    onClick={() => handleUpdateStatus(selectedApp.application.id, 'rejected')}
+                    onClick={() =>
+                      handleUpdateStatus(selectedApp.application.id, "rejected")
+                    }
                     disabled={processing}
                     className="flex-1"
                   >
-                    {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <XCircle className="h-4 w-4 mr-2" />}
+                    {processing ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <XCircle className="h-4 w-4 mr-2" />
+                    )}
                     拒绝申请
                   </Button>
                 </div>
               )}
 
-              {selectedApp?.application.status === 'approved' && (
+              {selectedApp?.application.status === "approved" && (
                 <div className="flex gap-2 pt-4 border-t">
-                  <Button onClick={handleAddProgress} variant="outline" className="flex-1">
+                  <Button
+                    onClick={handleAddProgress}
+                    variant="outline"
+                    className="flex-1"
+                  >
                     添加进度
                   </Button>
-                  <Button onClick={() => setShowFeedbackDialog(true)} className="flex-1">
+                  <Button
+                    onClick={() => setShowFeedbackDialog(true)}
+                    className="flex-1"
+                  >
                     <MessageSquare className="h-4 w-4 mr-2" />
                     提供反馈
                   </Button>
@@ -412,7 +455,7 @@ export function ApplicationReview() {
               为 {selectedApp?.student.name} 提供评价和反馈
             </DialogDescription>
           </DialogHeader>
-          
+
           <form onSubmit={handleSubmitFeedback} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="rating">评分 (1-5)</Label>
@@ -427,8 +470,8 @@ export function ApplicationReview() {
                     <Star
                       className={`h-8 w-8 ${
                         value <= rating
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-300'
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-gray-300"
                       }`}
                     />
                   </button>
@@ -449,19 +492,23 @@ export function ApplicationReview() {
             </div>
 
             <div className="flex gap-2">
-              <Button type="submit" disabled={submittingFeedback} className="flex-1">
+              <Button
+                type="submit"
+                disabled={submittingFeedback}
+                className="flex-1"
+              >
                 {submittingFeedback ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     提交中...
                   </>
                 ) : (
-                  '提交反馈'
+                  "提交反馈"
                 )}
               </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => setShowFeedbackDialog(false)}
               >
                 取消

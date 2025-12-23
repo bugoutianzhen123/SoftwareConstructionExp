@@ -1,20 +1,33 @@
-import { useState, useEffect } from 'react';
-import { applicationApi, trackingApi } from '../../../lib/api';
-import type { ApplicationView, Tracking } from '../../../types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { 
+import { useState, useEffect } from "react";
+import { applicationApi, trackingApi } from "../../../lib/api";
+import type { ApplicationView, Tracking } from "../../../types";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '../ui/dialog';
-import { ScrollArea } from '../ui/scroll-area';
-import { Loader2, Clock, CheckCircle, XCircle, Eye, TrendingUp } from 'lucide-react';
-import { toast } from 'sonner';
+} from "../ui/dialog";
+import { ScrollArea } from "../ui/scroll-area";
+import {
+  Loader2,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Eye,
+  TrendingUp,
+} from "lucide-react";
+import { toast } from "sonner";
 
 export function MyApplications() {
   const [applications, setApplications] = useState<ApplicationView[]>([]);
@@ -30,10 +43,13 @@ export function MyApplications() {
   const loadApplications = async () => {
     try {
       setLoading(true);
-      const data = await applicationApi.getMyApplications();
+      const data = await applicationApi.getMyApplications({
+        fast: true,
+        scores: false,
+      });
       setApplications(data);
     } catch (error) {
-      toast.error('加载申请失败');
+      toast.error("加载申请失败");
     } finally {
       setLoading(false);
     }
@@ -45,7 +61,7 @@ export function MyApplications() {
       const data = await trackingApi.getTracking(applicationId);
       setTrackings(data);
     } catch (error) {
-      toast.error('加载进度失败');
+      toast.error("加载进度失败");
     } finally {
       setLoadingTracking(false);
     }
@@ -53,28 +69,28 @@ export function MyApplications() {
 
   const handleViewDetails = async (app: ApplicationView) => {
     setSelectedApp(app);
-    if (app.application.status === 'approved') {
+    if (app.application.status === "approved") {
       await loadTracking(app.application.id);
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'submitted':
+      case "submitted":
         return (
           <Badge variant="outline" className="gap-1">
             <Clock className="h-3 w-3" />
             待审核
           </Badge>
         );
-      case 'approved':
+      case "approved":
         return (
           <Badge className="bg-green-500 gap-1">
             <CheckCircle className="h-3 w-3" />
             已通过
           </Badge>
         );
-      case 'rejected':
+      case "rejected":
         return (
           <Badge variant="destructive" className="gap-1">
             <XCircle className="h-3 w-3" />
@@ -88,7 +104,7 @@ export function MyApplications() {
 
   const filterApplications = (status?: string) => {
     if (!status) return applications;
-    return applications.filter(app => app.application.status === status);
+    return applications.filter((app) => app.application.status === status);
   };
 
   const ApplicationCard = ({ app }: { app: ApplicationView }) => (
@@ -108,8 +124,8 @@ export function MyApplications() {
         <div className="text-sm text-gray-600">
           申请 ID: #{app.application.id}
         </div>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => handleViewDetails(app)}
         >
@@ -147,7 +163,7 @@ export function MyApplications() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-yellow-600">
-              {filterApplications('submitted').length}
+              {filterApplications("submitted").length}
             </div>
             <div className="text-sm text-gray-600">待审核</div>
           </CardContent>
@@ -155,7 +171,7 @@ export function MyApplications() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-green-600">
-              {filterApplications('approved').length}
+              {filterApplications("approved").length}
             </div>
             <div className="text-sm text-gray-600">已通过</div>
           </CardContent>
@@ -166,13 +182,13 @@ export function MyApplications() {
         <TabsList>
           <TabsTrigger value="all">全部 ({applications.length})</TabsTrigger>
           <TabsTrigger value="submitted">
-            待审核 ({filterApplications('submitted').length})
+            待审核 ({filterApplications("submitted").length})
           </TabsTrigger>
           <TabsTrigger value="approved">
-            已通过 ({filterApplications('approved').length})
+            已通过 ({filterApplications("approved").length})
           </TabsTrigger>
           <TabsTrigger value="rejected">
-            已拒绝 ({filterApplications('rejected').length})
+            已拒绝 ({filterApplications("rejected").length})
           </TabsTrigger>
         </TabsList>
 
@@ -185,24 +201,26 @@ export function MyApplications() {
               </CardContent>
             </Card>
           ) : (
-            applications.map(app => <ApplicationCard key={app.application.id} app={app} />)
+            applications.map((app) => (
+              <ApplicationCard key={app.application.id} app={app} />
+            ))
           )}
         </TabsContent>
 
         <TabsContent value="submitted" className="space-y-4 mt-6">
-          {filterApplications('submitted').map(app => (
+          {filterApplications("submitted").map((app) => (
             <ApplicationCard key={app.application.id} app={app} />
           ))}
         </TabsContent>
 
         <TabsContent value="approved" className="space-y-4 mt-6">
-          {filterApplications('approved').map(app => (
+          {filterApplications("approved").map((app) => (
             <ApplicationCard key={app.application.id} app={app} />
           ))}
         </TabsContent>
 
         <TabsContent value="rejected" className="space-y-4 mt-6">
-          {filterApplications('rejected').map(app => (
+          {filterApplications("rejected").map((app) => (
             <ApplicationCard key={app.application.id} app={app} />
           ))}
         </TabsContent>
@@ -215,7 +233,7 @@ export function MyApplications() {
             <DialogTitle>{selectedApp?.project.title}</DialogTitle>
             <DialogDescription>申请详情</DialogDescription>
           </DialogHeader>
-          
+
           <ScrollArea className="max-h-[60vh] pr-4">
             <div className="space-y-6">
               <div>
@@ -225,32 +243,38 @@ export function MyApplications() {
 
               <div>
                 <h3 className="font-semibold mb-2">项目描述</h3>
-                <p className="text-sm text-gray-600">{selectedApp?.project.description}</p>
+                <p className="text-sm text-gray-600">
+                  {selectedApp?.project.description}
+                </p>
               </div>
 
-              {selectedApp?.project.requirements && selectedApp.project.requirements.length > 0 && (
-                <div>
-                  <h3 className="font-semibold mb-2">项目要求</h3>
-                  <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
-                    {selectedApp.project.requirements.map((req, idx) => (
-                      <li key={idx}>{req}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {selectedApp?.project.tags && selectedApp.project.tags.length > 0 && (
-                <div>
-                  <h3 className="font-semibold mb-2">标签</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedApp.project.tags.map(tag => (
-                      <Badge key={tag} variant="secondary">{tag}</Badge>
-                    ))}
+              {selectedApp?.project.requirements &&
+                selectedApp.project.requirements.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">项目要求</h3>
+                    <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                      {selectedApp.project.requirements.map((req, idx) => (
+                        <li key={idx}>{req}</li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
-              )}
+                )}
 
-              {selectedApp?.application.status === 'approved' && (
+              {selectedApp?.project.tags &&
+                selectedApp.project.tags.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">标签</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedApp.project.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              {selectedApp?.application.status === "approved" && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <TrendingUp className="h-5 w-5 text-blue-600" />
@@ -273,16 +297,22 @@ export function MyApplications() {
                             )}
                           </div>
                           <div className="flex-1 pb-4">
-                            <p className="text-sm font-medium">{tracking.progress}</p>
+                            <p className="text-sm font-medium">
+                              {tracking.progress}
+                            </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {new Date(tracking.created_at).toLocaleString('zh-CN')}
+                              {new Date(tracking.created_at).toLocaleString(
+                                "zh-CN"
+                              )}
                             </p>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-500 text-center py-8">暂无进度记录</p>
+                    <p className="text-sm text-gray-500 text-center py-8">
+                      暂无进度记录
+                    </p>
                   )}
                 </div>
               )}
